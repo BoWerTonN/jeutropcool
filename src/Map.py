@@ -8,7 +8,6 @@ class Map:
     group: pyscroll.PyscrollGroup
     tmx_data: pytmx.TiledMap
 
-#Test commentaire
 class MapManager:
 
     def __init__(self, screen, player):
