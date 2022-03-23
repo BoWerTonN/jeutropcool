@@ -18,7 +18,6 @@ class Map:
     tmx_data: pytmx.TiledMap
     portals: list[Portal]
 
-#Test commentaire
 class MapManager:
 
     def __init__(self, screen, player):
