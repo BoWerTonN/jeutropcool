@@ -1,12 +1,22 @@
 from dataclasses import dataclass
 import pygame, pytmx, pyscroll
 
+
+@dataclass
+class Portal:
+    from_world: str
+    origin_point: str
+    target_world: str
+    teleport_point: str
+
+
 @dataclass
 class Map:
     name: str
     walls: list[pygame.Rect]
     group: pyscroll.PyscrollGroup
     tmx_data: pytmx.TiledMap
+    portals: list[Portal]
 
 #Test commentaire
 class MapManager:
@@ -16,7 +26,9 @@ class MapManager:
         self.screen = screen
         self.player = player
         self.current_map = "world"
-        self.register_map("world")
+        self.register_map("world", portals=[
+            Portal(from_world="world", origin_point='enter_house', target_world="house", teleport_point="spawn_house")
+        ])
         self.register_map('house')
         self.teleport_player("player")
 
@@ -32,7 +44,7 @@ class MapManager:
         self.player.save_location()
 
 
-    def register_map(self, name):
+    def register_map(self, name, portals=[]):
 
         # Charger la carte (tmx)
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{name}.tmx")
@@ -52,7 +64,7 @@ class MapManager:
         group.add(self.player)
 
         # Enregistrer la nouvelle carte chargée
-        self.maps[name] = Map(name, walls, group, tmx_data)
+        self.maps[name] = Map(name, walls, group, tmx_data, portals)
 
     def get_map(self): return self.maps[self.current_map]
 
