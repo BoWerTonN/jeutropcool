@@ -18,7 +18,7 @@ class Game:
         pygame.display.set_caption("JeuCool")
 
         # Générer le joueur
-        self.player = Player(0, 0)
+        self.player = Player()
         self.map_manager = MapManager(self.screen, self.player)
 
 

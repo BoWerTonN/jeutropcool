@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import pygame, pytmx, pyscroll
 
+from src.player import NPC
+
 
 @dataclass
 class Portal:
@@ -17,6 +19,7 @@ class Map:
     group: pyscroll.PyscrollGroup
     tmx_data: pytmx.TiledMap
     portals: list[Portal]
+    npcs: list[NPC]
 
 class MapManager:
 
@@ -27,11 +30,29 @@ class MapManager:
         self.current_map = "world"
         self.register_map("world", portals=[
             Portal(from_world="world", origin_point='enter_house', target_world="house", teleport_point="spawn_house")
+        ], npcs=[
+            NPC("paul, nb_points=4")
         ])
-        self.register_map('house')
+        self.register_map('house', portals=[
+            Portal(from_world="house", origin_point='exit_house', target_world="world", teleport_point="enter_house_exit")
+        ])
         self.teleport_player("player")
 
     def check_collisions(self):
+
+        #portails
+        for portal in self.get_map().portals:
+            if portal.from_world == self.current_map:
+                point = self.get_object(portal.origin_point)
+                rect = pygame.Rect(point.x, point.y, point.width, point.height)
+
+                if self.player.feet.colliderect(rect):
+                    copy_portal = portal
+                    self.current_map = portal.target_world
+                    self.teleport_player(copy_portal.teleport_point)
+
+
+        #collision
         for sprite in self.get_group().sprites():
             if sprite.feet.collidelist(self.get_walls()) > -1:
                 sprite.move_back()
@@ -43,7 +64,7 @@ class MapManager:
         self.player.save_location()
 
 
-    def register_map(self, name, portals=[]):
+    def register_map(self, name, portals=[], npcs=[]):
 
         # Charger la carte (tmx)
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{name}.tmx")
@@ -62,8 +83,12 @@ class MapManager:
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=5)
         group.add(self.player)
 
+        # récupérer tous les npcs pour les ajouter au groupe
+        for npc in npcs:
+            group.add(npc)
+
         # Enregistrer la nouvelle carte chargée
-        self.maps[name] = Map(name, walls, group, tmx_data, portals)
+        self.maps[name] = Map(name, walls, group, tmx_data, portals, npcs)
 
     def get_map(self): return self.maps[self.current_map]
 
